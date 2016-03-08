@@ -1,0 +1,1 @@
+/* Stream functions implementations */
