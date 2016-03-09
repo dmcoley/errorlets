@@ -11,7 +11,9 @@ function bad(x) {
 }
 
 function err(err) {
-    console.log("HANDLING ERR")
+    console.log("HANDLING ERR: " + err);
+    if (err !== "Another Error")
+	throw "Another Error";
     return 2
 }
 

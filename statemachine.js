@@ -65,7 +65,10 @@ StateMachine.prototype.next = function (g) {
     }
     
     var success = function (x, k, ek) {
-	f.successHandler(x, function (y) { g.successHandler(y, k, ek); }, function(err) {f.errorHandler(err, ek)})
+	f.successHandler(x,
+			 function (y) { g.successHandler(y, k, ek); },
+			 function(err) { g.errorHandler(err, ek); }
+			)
     };
     
     return new StateMachine(success, error);
@@ -88,4 +91,80 @@ StateMachine.prototype.error = function(h) {
 
 StateMachine.prototype.run = function(x) {
     this.successHandler(x, function() {}, function(err) {throw err;})
+}
+
+StateMachine.prototype.stream = function(source) {
+    if (source instanceof Array) {
+	this._stream_arr(source);
+    }
+}
+
+StateMachine.prototype._stream_arr = function(arr) {
+    var i = 0;
+    var iter = function() {
+	if (i < arr.length) {
+	    return arr[i++];
+	} else {
+	    return undefined;
+	}
+    }
+    return this._stream_iter(iter);
+}
+
+StateMachine.prototype._stream_req = function(source) {
+
+}
+
+StateMachine.prototype._stream_iter = function(iter) {
+    var f = this;
+    
+    var error = null;
+
+    var hasCalled = false;
+    var resultOfPrev = null;
+    var success = function (x, k, ek) {
+	if (!hasCalled) {
+	    self.successHandler(x,
+				function (y) {
+				    resultOfPrev = y;
+				},
+				function (err) {
+				    throw err;
+				});
+	    hasCalled = true;
+	}
+	k(iter());
+    }
+    return new Stream(success, error);
+}
+
+function Stream(successHandler, errorHandler) {
+    this.successHandler = successHandler;
+    this.errorHandler = errorHandler;
+}
+
+Stream.prototype = new StateMachine();
+Stream.prototype.constructor = Stream;
+
+Stream.prototype.until = function (f) {
+    var self = this;
+    self.intervalId = setInterval(function () {
+	self.successHandler(x,
+			    function(y) {
+				if (f(y)) {
+				    clearInterval(self.intervalId);
+				}
+			    },
+			    function(err) {
+				clearInterval(self.intervalId);
+				throw err;
+			    });
+    }, 500);
+}
+
+Stream.prototype.run  = function (x) {
+}
+
+Stream.prototype.stream = function () {
+    throw new Error("Cannot call .stream on a stream object");
 }
