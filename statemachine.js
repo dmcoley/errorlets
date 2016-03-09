@@ -89,3 +89,7 @@ StateMachine.prototype.error = function(h) {
 StateMachine.prototype.run = function(x) {
     this.successHandler(x, function() {}, function(err) {throw err;})
 }
+
+StateMachine.prototype.done = function(f, x) {
+    this.next(f).run(x)
+}
