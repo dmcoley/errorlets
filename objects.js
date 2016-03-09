@@ -34,3 +34,6 @@ StateMachine.prototype.next = function (g) {
     });
 }
 
+StateMachine.prototype.run = function(x) {
+    this.successHandler(x, function() {})
+}
