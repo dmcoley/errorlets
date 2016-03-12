@@ -93,6 +93,7 @@ StateMachine.prototype.run = function(x) {
     this.successHandler(x, function() {}, function(err) {throw err;})
 }
 
+
 StateMachine.prototype.stream = function(source) {
     if (source instanceof Array) {
 	this._stream_arr(source);
@@ -136,35 +137,4 @@ StateMachine.prototype._stream_iter = function(iter) {
 	k(iter());
     }
     return new Stream(success, error);
-}
-
-function Stream(successHandler, errorHandler) {
-    this.successHandler = successHandler;
-    this.errorHandler = errorHandler;
-}
-
-Stream.prototype = new StateMachine();
-Stream.prototype.constructor = Stream;
-
-Stream.prototype.until = function (f) {
-    var self = this;
-    self.intervalId = setInterval(function () {
-	self.successHandler(x,
-			    function(y) {
-				if (f(y)) {
-				    clearInterval(self.intervalId);
-				}
-			    },
-			    function(err) {
-				clearInterval(self.intervalId);
-				throw err;
-			    });
-    }, 500);
-}
-
-Stream.prototype.run  = function (x) {
-}
-
-Stream.prototype.stream = function () {
-    throw new Error("Cannot call .stream on a stream object");
 }
