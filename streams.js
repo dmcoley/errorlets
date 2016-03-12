@@ -107,7 +107,7 @@ Stream.prototype.until = function (f, interval) {
 			                                        function(err) {
                                                                     // this chain failed, clear the timer
 				                                    clearInterval(self.intervalId);
-				                                    throw err;
+				                                    ek(err)
 			                                        });
                                         }, interval);
                                     } else {
