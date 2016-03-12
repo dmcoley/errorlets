@@ -85,50 +85,55 @@ Stream.prototype.until = function (f, interval) {
     interval = interval ? interval : 500
     var self = this;
     var success = function(x, k, ek) {
-        var response = null
-
         /*
          * This is a little gross so here's what is happening. We don't want to wait for the first call in set interval to fire.
-         * This causes the entire chain to wait 'interval' before starting. So we call our success handler immediately and save
-         * the response in 'response'. Then we test if we want to keep going, if so we set the timer and then let it go from there.
+         * This causes the entire chain to wait 'interval' before starting. So we call our success handler immediately. In order
+         * to ensure the chain before is ran before this stream starts, we have to put the interval code into the success handler
+         * of the first call. In that success handler, we test if we still want to keep going, and if so, set the interval.
          */
         self.successHandler(x,
 			        function(y) {
-                                    response = y
+                                    // now if we want to keep going, we'll set the timer
+                                    if (!f(y)) {
+                                        self.intervalId = setInterval(function () {
+	                                    self.successHandler(x,
+			                                        function(y) {
+                                                                    // this chain has succeeded, clear the timer and call the continuation
+				                                    if (f(y)) {
+				                                        clearInterval(self.intervalId);
+                                                                        schedule(k, y)
+				                                    }
+			                                        },
+			                                        function(err) {
+                                                                    // this chain failed, clear the timer
+				                                    clearInterval(self.intervalId);
+				                                    throw err;
+			                                        });
+                                        }, interval);
+                                    } else {
+                                        schedule(k, y)
+                                    }
 			        },
-			        function(err) {
-				    throw err;
-			        });
-
-        // now if we want to keep going, we'll set the timer
-        if (!f(response)) {
-            self.intervalId = setInterval(function () {
-	        self.successHandler(x,
-			            function(y) {
-				        if (f(y)) {
-				            clearInterval(self.intervalId);
-                                            schedule(k, y)
-				        }
-			            },
-			            function(err) {
-				        clearInterval(self.intervalId);
-				        throw err;
-			            });
-            }, interval);
-        } else {
-            schedule(k, response)
-        }
-    }
-
-    
+			    function(err) {
+                                // this means an error was thrown on the chain before us. Crash.
+				throw err;
+			    });
         
-    return new StateMachine(success, function(err, ek) {
-        ek(err)
-    })
+        
+    }
+   
+    return new StateMachine(success,
+                            function(err, ek) {
+                                ek(err)
+                            });
 }
 
 Stream.prototype.run  = function (x) {
     this.until(function() {return false}).run(x)
+}
+
+Stream.prototype.done = function(f, x) {
+    this.next(f).run(x);
 }
 
 Stream.prototype.stream = function () {

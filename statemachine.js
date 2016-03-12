@@ -121,7 +121,7 @@ StateMachine.prototype._stream_arr = function(arr) {
     var hasCalled = false;
 
     // TODO: I don't think we need this? Isn't stream just going to swallow whatever value came before it?
-    resultOfPreve = null;
+    resultOfPrev = null;
     var success = function (x, k, ek) {
 	if (!hasCalled) {
 	    f.successHandler(x,
@@ -129,7 +129,7 @@ StateMachine.prototype._stream_arr = function(arr) {
 				    resultOfPrev = y;
                                     var next = iter();
                                     if (next != undefined) {
-                                        k(next);
+                                        schedule(k, next);
                                     }
 				},
 				function (err) {
@@ -140,7 +140,7 @@ StateMachine.prototype._stream_arr = function(arr) {
             var next = iter();
             // we only want to keep going if there is an element in the array to process
             if (next != undefined) {
-	        k(next);
+	        schedule(k, next);
             }
         }
     }
@@ -166,14 +166,14 @@ StateMachine.prototype._stream_iter = function(iter) {
 	    f.successHandler(x,
 				function (y) {
 				    resultOfPrev = y;
-                                    k(iter())
+                                    schedule(k, iter())
 				},
 				function (err) {
 				    throw err;
 				});
 	    hasCalled = true;
 	} else {
-	    k(iter());
+	    schedule(k, iter());
         }
     }
 
