@@ -105,7 +105,7 @@ Stream.prototype.until = function (f, interval) {
 				                                    }
 			                                        },
 			                                        function(err) {
-                                                                    // this chain failed, clear the timer
+                                                                    // something in the chain failed and wasn't dealt with, so just pass it on
 				                                    clearInterval(self.intervalId);
 				                                    ek(err)
 			                                        });
@@ -115,8 +115,8 @@ Stream.prototype.until = function (f, interval) {
                                     }
 			        },
 			    function(err) {
-                                // this means an error was thrown on the chain before us. Crash.
-				throw err;
+                                // this means an error has been thrown and wasn't dealt with, so just pass it on
+				ek(err);
 			    });
         
         
