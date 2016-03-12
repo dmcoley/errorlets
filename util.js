@@ -1,3 +1,3 @@
-function schedule(f, x) {
-    setTimeout(function() { f(x); }, 0);
+function schedule(f, x, id) {
+    setTimeout(function() { f(x, id); }, 0);
 }

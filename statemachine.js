@@ -122,7 +122,7 @@ StateMachine.prototype._stream_arr = function(arr) {
 
     // TODO: I don't think we need this? Isn't stream just going to swallow whatever value came before it?
     resultOfPrev = null;
-    var success = function (x, k, ek) {
+    var success = function (x, k, ek, id) {
 	if (!hasCalled) {
 	    f.successHandler(x,
 				function (y) {
@@ -141,6 +141,8 @@ StateMachine.prototype._stream_arr = function(arr) {
             // we only want to keep going if there is an element in the array to process
             if (next != undefined) {
 	        schedule(k, next);
+            } else {
+                clearInterval(id)
             }
         }
     }
