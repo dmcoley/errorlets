@@ -21,3 +21,9 @@ function print(x) {
     console.log(x)
     return x
 }
+
+function clickTarget(event) {
+    var target = event.currentTarget;
+    console.log("You clicked me! ");
+    return target;
+}

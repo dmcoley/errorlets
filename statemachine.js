@@ -93,6 +93,9 @@ StateMachine.prototype.run = function(x) {
     this.successHandler(x, function() {}, function(err) {throw err;})
 }
 
+StateMachine.prototype.done = function(f, x) {
+    this.next(f).run(x)
+}
 
 StateMachine.prototype.stream = function(source) {
     if (source instanceof Array) {
