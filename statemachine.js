@@ -52,10 +52,6 @@ Function.prototype.ErrorStateMachine = function() {
     return new StateMachine(success, error)
 }
 
-function schedule(f, x) {
-    setTimeout(function() { f(x); }, 0);
-}
-
 StateMachine.prototype.next = function (g) {
     var f = this;
     g = g.StateMachine();
@@ -99,12 +95,16 @@ StateMachine.prototype.done = function(f, x) {
 
 StateMachine.prototype.stream = function(source) {
     if (source instanceof Array) {
-	this._stream_arr(source);
+	return this._stream_arr(source);
+    } else if (source instanceof Function) {
+        return this._stream_iter(source);
     }
 }
 
 StateMachine.prototype._stream_arr = function(arr) {
     var i = 0;
+
+    // turn the array into an iterator
     var iter = function() {
 	if (i < arr.length) {
 	    return arr[i++];
@@ -112,7 +112,36 @@ StateMachine.prototype._stream_arr = function(arr) {
 	    return undefined;
 	}
     }
-    return this._stream_iter(iter);
+
+    var f = this;
+    var error = function(err, ek) {
+        ek(err)
+    }
+
+    var hasCalled = false;
+
+    // TODO: I don't think we need this? Isn't stream just going to swallow whatever value came before it?
+    resultOfPreve = null;
+    var success = function (x, k, ek) {
+	if (!hasCalled) {
+	    f.successHandler(x,
+				function (y) {
+				    resultOfPrev = y;
+				},
+				function (err) {
+				    throw err;
+				});
+	    hasCalled = true;
+	}
+
+        var next = iter();
+        // we only want to keep going if there is an element in the array to process
+        if (next != undefined) {
+	    k(next);
+        }
+    }
+
+    return new Stream(success, error);    
 }
 
 StateMachine.prototype._stream_req = function(source) {
@@ -122,13 +151,15 @@ StateMachine.prototype._stream_req = function(source) {
 StateMachine.prototype._stream_iter = function(iter) {
     var f = this;
     
-    var error = null;
+    var error = function(err, ek) {
+        ek(err)
+    }
 
     var hasCalled = false;
     var resultOfPrev = null;
     var success = function (x, k, ek) {
 	if (!hasCalled) {
-	    self.successHandler(x,
+	    f.successHandler(x,
 				function (y) {
 				    resultOfPrev = y;
 				},
@@ -137,7 +168,9 @@ StateMachine.prototype._stream_iter = function(iter) {
 				});
 	    hasCalled = true;
 	}
+        // TODO: since f.successHandler is async, I believe this gets called before everything previous
 	k(iter());
     }
+
     return new Stream(success, error);
 }
