@@ -127,17 +127,21 @@ StateMachine.prototype._stream_arr = function(arr) {
 	    f.successHandler(x,
 				function (y) {
 				    resultOfPrev = y;
+                                    var next = iter();
+                                    if (next != undefined) {
+                                        k(next);
+                                    }
 				},
 				function (err) {
 				    throw err;
 				});
 	    hasCalled = true;
-	}
-
-        var next = iter();
-        // we only want to keep going if there is an element in the array to process
-        if (next != undefined) {
-	    k(next);
+	} else {
+            var next = iter();
+            // we only want to keep going if there is an element in the array to process
+            if (next != undefined) {
+	        k(next);
+            }
         }
     }
 
@@ -162,14 +166,15 @@ StateMachine.prototype._stream_iter = function(iter) {
 	    f.successHandler(x,
 				function (y) {
 				    resultOfPrev = y;
+                                    k(iter())
 				},
 				function (err) {
 				    throw err;
 				});
 	    hasCalled = true;
-	}
-        // TODO: since f.successHandler is async, I believe this gets called before everything previous
-	k(iter());
+	} else {
+	    k(iter());
+        }
     }
 
     return new Stream(success, error);
