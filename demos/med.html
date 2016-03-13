@@ -1,0 +1,40 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+</head>
+
+<body>
+  <script src="../statemachine.js"></script>
+  <script src="../play.js"></script>
+  <script src="../streams.js"></script>
+  <script src="../basic.js"></script>  
+  <script src="../events.js"></script>
+  <script src="../util.js"></script>
+  <script src="medutil.js"></script>
+  <form>
+    Server Name<br>
+    <input type="text" name="servername" id="server">
+    <button type="button" id="target">Submit</button>
+  </form>
+  <br />
+  <div id="results"></div>
+
+  <script>
+    /* TESTING */
+    var serverName = $("server").value;
+    Event("click", $("target"))
+    .next(handleServerIsUp)
+    .run()
+
+    /*
+    Begin().stream(servername, args)
+    .next(function() { return "up!"; })
+    .error(function () { return "down!"; })
+    .until(function(res) { return res === "up!"; })
+    .done(handleServerIsUp)
+    */
+  </script>
+</body>
+</html>
