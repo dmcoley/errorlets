@@ -179,3 +179,59 @@ StateMachine.prototype._stream_iter = function(iter) {
 
     return new Stream(success, error);
 }
+
+/**
+example request:
+
+{
+    type: 'POST',
+    url: 'ignore.com',
+    headers: [
+	['Content-type': 'application/x-www-form-urlencoded'],
+	...
+    ]
+    data: 'user=person&pwd=password&organization=place&requiredkey=key'
+}
+
+*/
+StateMachine.prototype.request = function (req) {
+    var f = this;
+
+    var error = function(e, ek) {
+        ek(e)
+    }
+
+    var success = function (x, k, ek) {
+	f.successHandler(x,
+			 function (y) {
+			     // Build up the reques
+			     var xhr = new XMLHttpRequest();
+			     xhr.open(req.type, req.url, true);
+			     if (req.headers) {
+				 req.headers.forEach(function (header) {
+				     xhr.setRequestHeader(header[0], header[1]);
+				 });
+			     }
+
+			     xhr.addEventListener("readystatechange",
+						  function(e) {
+						      // Not loaded, just return
+						      if (xhr.readyState != 4) return;
+						      if (xhr.status == 200) {
+							  schedule(k, xhr.response);
+						      } else {
+							  ek(xhr.status);
+						      }
+						  }, false);
+			     if (req.data) {
+				 xhr.send(req.data);
+			     } else {
+				 xhr.send();
+			     }
+			 },
+			 function(err) { ek(err) }
+			)
+    };
+
+    return new StateMachine(success, error);
+}
