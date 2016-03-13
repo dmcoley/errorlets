@@ -54,14 +54,17 @@ Stream.prototype.next = function (g) {
         ek(e)
     }
     
-    var success = function (x, k, ek, id) {
+    var success = function (x, k, ek, id, until) {
+        if (until === undefined) {
+            until = function(z) { return false }
+        }
 	f.successHandler(x,
-			 function (y) { g.successHandler(y, k, ek, id); },
+			 function (y) { if (!until(y)) { g.successHandler(y, k, ek, id, until); } },
 			 function(err) { g.errorHandler(err, ek); },
-                         id
+                         id,
+                         until
 			)
     };
-    
     return new Stream(success, error);
 }
 
@@ -109,7 +112,7 @@ Stream.prototype.until = function (f, interval) {
                                                                     // something in the chain failed and wasn't dealt with, so just pass it on
 				                                    clearInterval(self.intervalId);
 				                                    ek(err)
-			                                        }, self.intervalId);
+			                                        }, self.intervalId, f);
                                         }, interval);
                                     } else {
                                         schedule(k, y)
@@ -118,9 +121,8 @@ Stream.prototype.until = function (f, interval) {
 			    function(err) {
                                 // this means an error has been thrown and wasn't dealt with, so just pass it on
 				ek(err);
-			    }, self.intervalId);
+			    }, self.intervalId, f);
     }
-   
     return new StateMachine(success,
                             function(err, ek) {
                                 ek(err)
