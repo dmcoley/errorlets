@@ -11,16 +11,20 @@ Stream.prototype.Stream = function() {
 Function.prototype.Stream = function() {
     var f = this; // the function
 
-    var error = function(e, ek) {
-        ek(e)
+    var error = function(e, ek, until) {
+        if (!until) {
+            ek(e)
+        }
     }
     
-    var success = function(x, k, ek, id) {
-        try {
-	    var res = f(x);
-            schedule(k, res, id);
-        } catch(err) {
-            ek(err)
+    var success = function(x, k, ek, id, until) {
+        if (!until) {
+            try {
+	        var res = f(x);
+                schedule(k, res, id);
+            } catch(err) {
+                ek(err)
+            }
         }
     }
 
@@ -30,16 +34,20 @@ Function.prototype.Stream = function() {
 Function.prototype.ErrorStream = function() {
     var h = this
 
-    var success = function(x, k, id) {
-        schedule(k, x, id)
+    var success = function(x, k, id, until) {
+        if (!until) {
+            schedule(k, x, id, until)
+        }
     }
 
-    var error = function(err, k, ek, id) {
-        try {
-            var res = h(err)
-            schedule(k, res, id)
-        } catch (err) {
-            ek(err)
+    var error = function(err, k, ek, id, until) {
+        if (!until) {
+            try {
+                var res = h(err)
+                schedule(k, res, id, until)
+            } catch (err) {
+                ek(err)
+            }
         }
     }
 
@@ -50,20 +58,21 @@ Stream.prototype.next = function (g) {
     var f = this;
     g = g.Stream();
 
-    var error = function(e, ek) {
-        ek(e)
+    var error = function(e, ek, until) {
+        if (!until) {
+            ek(e)
+        }
     }
     
     var success = function (x, k, ek, id, until) {
-        if (until === undefined) {
-            until = function(z) { return false }
+        if (!until) {
+	    f.successHandler(x,
+			     function (y) { g.successHandler(y, k, ek, id, until); },
+			     function(err) { g.errorHandler(err, ek, id, until); },
+                             id,
+                             until
+			    );
         }
-	f.successHandler(x,
-			 function (y) { if (!until(y)) { g.successHandler(y, k, ek, id, until); } },
-			 function(err) { g.errorHandler(err, ek); },
-                         id,
-                         until
-			)
     };
     return new Stream(success, error);
 }
@@ -77,8 +86,10 @@ Stream.prototype.error = function(h) {
         ek(e)
     }
     
-    var success = function(x, k, ek, id) {
-        f.successHandler(x, function(y) {h.successHandler(y, k, id)}, function(err) {h.errorHandler(err, k, ek, id)}, id)
+    var success = function(x, k, ek, id, until) {
+        if (!until) {
+            f.successHandler(x, function(y) {h.successHandler(y, k, id, until)}, function(err) {h.errorHandler(err, k, ek, id, until)}, id, until);
+        }
     }
 
     return new Stream(success, error);
@@ -99,20 +110,23 @@ Stream.prototype.until = function (f, interval) {
 			        function(y) {
                                     // now if we want to keep going, we'll set the timer
                                     if (!f(y)) {
+                                        self.stop = false
                                         self.intervalId = setInterval(function () {
 	                                    self.successHandler(x,
 			                                        function(y) {
                                                                     // this chain has succeeded, clear the timer and call the continuation
 				                                    if (f(y)) {
 				                                        clearInterval(self.intervalId);
+                                                                        self.until = true
                                                                         schedule(k, y)
 				                                    }
 			                                        },
 			                                        function(err) {
                                                                     // something in the chain failed and wasn't dealt with, so just pass it on
 				                                    clearInterval(self.intervalId);
+                                                                    self.until = true
 				                                    ek(err)
-			                                        }, self.intervalId, f);
+			                                        }, self.intervalId, self.stop);
                                         }, interval);
                                     } else {
                                         schedule(k, y)
@@ -121,8 +135,9 @@ Stream.prototype.until = function (f, interval) {
 			    function(err) {
                                 // this means an error has been thrown and wasn't dealt with, so just pass it on
 				ek(err);
-			    }, self.intervalId, f);
+			    }, self.intervalId, self.stop);
     }
+    
     return new StateMachine(success,
                             function(err, ek) {
                                 ek(err)
