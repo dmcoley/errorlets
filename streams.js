@@ -12,7 +12,6 @@ Stream.prototype.Stream = function() {
 
 Function.prototype.Stream = function() {
     var f = this; // the function
-
     var error = function(e, ek, until) {
         if (!until) {
             ek(e)
@@ -29,7 +28,6 @@ Function.prototype.Stream = function() {
             }
         }
     }
-
     return new Stream(success, error);
 }
 
@@ -59,7 +57,6 @@ Function.prototype.ErrorStream = function() {
 Stream.prototype.next = function (g) {
     var f = this;
     g = g.Stream();
-
     var error = function(e, ek, until) {
         if (!until) {
             ek(e)
@@ -68,7 +65,7 @@ Stream.prototype.next = function (g) {
     var success = function (x, k, ek, id, until, func) {
         if (!until) {
 	    f.successHandler(x,
-			     function (y) { done = done || func(y); if (!done) { g.successHandler(y, k, ek, id, until); } else { console.log("still running? :(")} },
+			     function (y) { f.stop = f.stop || func(y); if (!f.stop) { g.successHandler(y, k, ek, id, until, func); } else { clearInterval(id); } },
 			     function(err) { g.errorHandler(err, ek, id, until); },
                              id,
                              until,
@@ -119,6 +116,7 @@ Stream.prototype.until = function (f, interval) {
                                                                     // this chain has succeeded, clear the timer and call the continuation
 				                                    if (f(y)) {
 				                                        clearInterval(self.intervalId);
+                                                                        self.stop = false
                                                                         self.until = true
                                                                         schedule(k, y)
 				                                    }
@@ -126,6 +124,7 @@ Stream.prototype.until = function (f, interval) {
 			                                        function(err) {
                                                                     // something in the chain failed and wasn't dealt with, so just pass it on
 				                                    clearInterval(self.intervalId);
+                                                                    self.stop = false
                                                                     self.until = true
 				                                    ek(err)
 			                                        }, self.intervalId, self.stop, f);
