@@ -1,3 +1,5 @@
+var done = false
+
 /* Stream functions implementations */
 function Stream(successHandler, errorHandler) {
     this.successHandler = successHandler;
@@ -63,14 +65,14 @@ Stream.prototype.next = function (g) {
             ek(e)
         }
     }
-    
-    var success = function (x, k, ek, id, until) {
+    var success = function (x, k, ek, id, until, func) {
         if (!until) {
 	    f.successHandler(x,
-			     function (y) { g.successHandler(y, k, ek, id, until); },
+			     function (y) { done = done || func(y); if (!done) { g.successHandler(y, k, ek, id, until); } else { console.log("still running? :(")} },
 			     function(err) { g.errorHandler(err, ek, id, until); },
                              id,
-                             until
+                             until,
+                             func
 			    );
         }
     };
@@ -126,7 +128,7 @@ Stream.prototype.until = function (f, interval) {
 				                                    clearInterval(self.intervalId);
                                                                     self.until = true
 				                                    ek(err)
-			                                        }, self.intervalId, self.stop);
+			                                        }, self.intervalId, self.stop, f);
                                         }, interval);
                                     } else {
                                         schedule(k, y)
@@ -135,7 +137,7 @@ Stream.prototype.until = function (f, interval) {
 			    function(err) {
                                 // this means an error has been thrown and wasn't dealt with, so just pass it on
 				ek(err);
-			    }, self.intervalId, self.stop);
+			    }, self.intervalId, self.stop, f);
     }
     
     return new StateMachine(success,
