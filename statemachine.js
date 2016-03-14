@@ -90,7 +90,12 @@ StateMachine.prototype.run = function(x) {
 }
 
 StateMachine.prototype.done = function(f, x) {
-    this.next(f).run(x)
+    /* No function passed in */
+    if (arguments.length == 0) {
+        this.run(x)
+    } else {
+        this.next(f).run(x)
+    }
 }
 
 StateMachine.prototype.stream = function(source) {
