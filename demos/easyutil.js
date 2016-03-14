@@ -1,11 +1,13 @@
 function handleServerIsUp() {
     var name = $("server").value;
     $("results").innerHTML = "Server " + name + " is up :)";
+    $("results").style.color = 'green';
 }
 
 function handleServerIsDown() {
     var name = $("server").value;
     $("results").innerHTML = "Server " + name + " is down :(";
+    $("results").style.color = 'red';
 }
 
 function $() {
