@@ -33,7 +33,7 @@ my_http.createServer(function(request,response){
                 response.write(JSON.stringify(getTweets()));
                 response.end();
                 console.log("Sent request", me)
-            }, 5000);
+            }, 3000);
             return;
         }
     }
