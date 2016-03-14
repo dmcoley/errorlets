@@ -1,12 +1,16 @@
 <!doctype html>
 
-<html lang="en">
+<html lang="en", style="background-color:azure">
 
 <head>
     <meta charset="utf-8">
 </head>
 
-<body>
+<body style="
+    margin-left: auto;
+    margin-right: auto;
+    width: 900px;
+    margin-top: 200px;">
     <script src="../statemachine.js"></script>
     <script src="../play.js"></script>
     <script src="../streams.js"></script>
@@ -20,7 +24,7 @@
         <button type="button" onclick="report()" id="target", style="font-size:60px">Submit</button>
     </form>
     <br />
-    <div id="results", style="font-size:60px"></div>
+    <div id="results", style="font-size:50px"></div>
     <script>
         function report() {
             var request = {
