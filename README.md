@@ -11,15 +11,21 @@ The library supports sequential, event-based operations that may commonly produc
 - Screencast:
 
 ## Usage
-The example below shows setting up an event handler on a button in the DOM with the id "target", and logging Hello World! to the console.
+Lets set up an event handler on a button in the DOM with the id "target", and log Hello World! to the console.
 We build a simple StateMachine and immediately call run() on it to invoke it.
 ```javascript
-Event(“click”, $(“target”))
+Event(“click”, document.getElementById(“target”))
 	.next(function() { console.log(“Hello world!”))
 	.run()
 ```
-Another example is below, this one demonstrating the simplicity of using a Stream object to deal with GET requests to a web server. This specific scenario gets a server name from a textarea with the id "server".
+Now, lets demonstrate the simplicity of using a Stream object to deal with GET requests to a web server. This specific scenario gets a server name from a text-area with the id "server".
 ```javascript
+var request = {
+  type: 'GET',
+  url: document.getElementById("server").value,
+  headers: []
+}
+
 Begin()
   .request(request)
   .next(handleServerIsUp)
