@@ -17,7 +17,8 @@
     <script src="../basic.js"></script>
     <script src="../events.js"></script>
     <script src="../util.js"></script>
-    <script src="easyutil.js"></script>
+    <script src="medutil.js"></script>
+    <script>var times = 0;</script>
     <form style="font-size:60px">
         Server Name<br>
         <input type="text" name="servername" id="server", style="font-size:60px">
@@ -34,7 +35,6 @@
             }
 
             /* Using times variable for demo purposes */
-            var times = 0;
             Begin().stream(request)
               .next(function() { return "up!"; })
               .error(function () { return "down!"; })
@@ -43,12 +43,11 @@
                         $("results").innerHTML = 
                             "Trying again " + ++times + " time(s)... :/";
                             /* Because JS has no sleep function */
-                            var start = new Date().getTime();
-                            while (new Date().getTime() < start + 1000);
+                            var date = new Date();
                         $("results").style.color = 'red';
                     }
-                    return res === "up!" || times > 10; 
-                })
+                    return res === "up!" || times > 100; 
+                }, 100)
               .done(handleServerIsUp)
         }
     </script>
