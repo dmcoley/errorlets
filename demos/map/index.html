@@ -73,12 +73,9 @@
     }
     
         function f() {
-            console.log("here")
             Event("click", $("map"))
             .stream(req)
             .next(printTweets)
-            .next(iter())
-            .next(print)
             .until(Event("click", $("map")), 1000)
             .done(f)
         }
