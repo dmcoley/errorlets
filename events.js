@@ -12,7 +12,7 @@ function Event(eventname, target) {
     this.target = target
 }
 
-Event.prototype = new StateMachine(function(target, k) {
+Event.prototype = new StateMachine(function(val, k) {
     var f = this
     function handler(event) {
         // register handler as part of the continuation

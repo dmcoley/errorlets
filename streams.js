@@ -95,9 +95,42 @@ Stream.prototype.error = function(h) {
     return new Stream(success, error);
 }
 
-
-Stream.prototype.until = function (f, interval) {
+Stream.prototype.until = function(stop, interval) {
     interval = interval !== undefined ? interval : 0
+    if (typeof(stop) === "function") {
+        return this._until_function(stop, interval);
+    } else if (stop instanceof Event) {
+        return this._until_event(stop, interval)
+    } else {
+        throw new Error("Until must be called with a function or an event.")
+    }
+}
+
+Stream.prototype._until_event = function(event, interval) {
+    var self = this
+
+    var success = function(x, k, ek) {
+        event.successHandler(x, function(y) { clearInterval(self.intervalId); k(y)})
+        self.successHandler(x,
+                            function(y) {
+                                self.intervalId = setInterval(function() {
+                                    self.successHandler(x,
+                                                        function(y) {
+                                                            
+                                                        },
+                                                        function(err) {
+                                                            clearInterval(self.intervalId)
+                                                            ek(err)
+                                                        }, self.intervalId)
+                                }, interval);
+                            },
+                            function(err) { ek(err) }, self.intervalId);
+    }
+
+    return new StateMachine(success, function(err, ek) { ek(err) })
+}
+
+Stream.prototype._until_function = function (f, interval) {
     var self = this;
     var success = function(x, k, ek) {
         /*
