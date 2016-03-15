@@ -1,6 +1,12 @@
 function handleServerIsUp() {
     var name = $("server").value;
-    $("results").innerHTML = "Server " + name + " is up :)";
+    if (times < 100) {
+        $("results").innerHTML = "Server " + name + " is up :)";
+        $("results").style.color = 'green';
+    } else {
+        $("results").innerHTML = "Server " + name + " is down :(";
+        times = 0;
+    }
 }
 
 function $() {

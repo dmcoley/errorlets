@@ -1,7 +1,11 @@
+/* Utility functions */
+
+/* Sets timeout for given function f */
 function schedule(f, x, id, until) {
     setTimeout(function() { f(x, id, until); }, 0);
 }
 
+/* Simplify getDocumentByElementId */
 function $() {
     if (arguments.length==1) {
         return document.getElementById(arguments[0]);
@@ -15,6 +19,8 @@ function $() {
     return result;
 }
 
+/* Calls the given callback iff conditional evaluates to true,
+ * otherwise sets a timeout */
 function fireWhenTrue(conditional, callback) {
     if (conditional()) {
 	callback();
@@ -23,8 +29,8 @@ function fireWhenTrue(conditional, callback) {
     }
 }
 
-// Builds and sends off the request, calling 'callback'
-// upon load with the xhr as a parameter
+/* Builds and sends off the request, calling 'callback'
+/* upon load with the xhr as a parameter */
 function buildAndSendXhr(req, callback) {
 
     var xhr = new XMLHttpRequest();
@@ -49,6 +55,7 @@ function buildAndSendXhr(req, callback) {
     }
 }
 
+/* Returns true iff req is valid */
 function checkReq(req) {
     return (typeof(req) === 'object') &&
 	typeof(req.data) === 'string' &&
