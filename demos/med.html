@@ -36,7 +36,7 @@
             /* Using times variable for demo purposes */
             var times = 0;
             Begin().stream(request)
-              .next(function() { return "down!"; })
+              .next(function() { return "up!"; })
               .error(function () { return "down!"; })
               .until(function(res) {
                     if (res !== "up!") {
