@@ -33,20 +33,21 @@
                 headers: []
             }
 
-            Begin()
-                .request(request)
-                .next(handleServerIsUp)
-                .error(handleServerIsDown)
-                .done()
+            /* Using times variable for demo purposes */
+            var times = 0;
+            Begin().stream(request)
+              .next(function() { return "down!"; })
+              .error(function () { return "down!"; })
+              .until(function(res) {
+                    if (res !== "up!") {
+                        $("results").innerHTML = 
+                            "Trying again " + ++times + " time(s)... :/";
+                        $("results").style.color = 'red';
+                    }
+                    return res === "up!" || times > 42; 
+                })
+              .done(handleServerIsUp)
         }
-
-        /*
-        Begin().stream(servername, args)
-        .next(function() { return "up!"; })
-        .error(function () { return "down!"; })
-        .until(function(res) { return res === "up!"; })
-        .done(handleServerIsUp)
-        */
     </script>
 </body>
 

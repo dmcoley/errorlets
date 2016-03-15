@@ -66,7 +66,6 @@ Stream.prototype.next = function (g) {
     
     var success = function (x, k, ek, id, until) {
         if (!until.stop) {
-	    console.log('!!!', until.stop);
 	    f.successHandler(x,
 			     function (y) { g.successHandler(y, k, ek, id, until); },
 			     function(err) { g.errorHandler(err, ek, id, until); },
