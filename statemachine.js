@@ -1,19 +1,30 @@
 /* Object files go here */
 
+/*
+ * Creates a new state machine. f is the success function and e is the error function.  
+ */
 function StateMachine(f, e) {
     this.errorHandler = e;
     this.successHandler = f;
 }
 
+/*
+ * Returns a state machine.
+ */
 StateMachine.prototype.StateMachine = function () {
     return this;
 }
 
+/*
+ * Returns an error state machine. This is an internally used function, not for user's use.
+ */
 StateMachine.prototype.ErrorStateMachine = function() {
     return this;
 }
 
-// Lift into state machine
+/*
+ * Creates a new state machine where this is the function to be ran before moving to the next state.
+ */
 Function.prototype.StateMachine = function() {
     var f = this; // the function
 
@@ -33,6 +44,9 @@ Function.prototype.StateMachine = function() {
     return new StateMachine(success, error);
 }
 
+/*
+ * Creates a new error state machine where this is a function that handles the error. Not to be used directly by the user.
+ */
 Function.prototype.ErrorStateMachine = function() {
     var h = this
 
@@ -52,6 +66,9 @@ Function.prototype.ErrorStateMachine = function() {
     return new StateMachine(success, error)
 }
 
+/*
+ * Chains a call to g on to the end of this. Returns a state machine. 
+ */
 StateMachine.prototype.next = function (g) {
     var f = this;
     g = g.StateMachine();
@@ -70,6 +87,9 @@ StateMachine.prototype.next = function (g) {
     return new StateMachine(success, error);
 }
 
+/*
+ * Creates a state machine that will handle an error by calling h. This has no effect if there isn't an error.
+ */
 StateMachine.prototype.error = function(h) {
     var f = this
     h = h.ErrorStateMachine()
@@ -85,10 +105,16 @@ StateMachine.prototype.error = function(h) {
     return new StateMachine(success, error);
 }
 
+/*
+ * Runs an errorlets chain with x as the argument.
+ */
 StateMachine.prototype.run = function(x) {
     this.successHandler(x, function() {}, function(err) {throw err;})
 }
 
+/*
+ * This runs an errorlets chain with x as the argument and f as a cleanup function to be ran at the very end.
+ */
 StateMachine.prototype.done = function(f, x) {
     /* No function passed in */
     if (arguments.length == 0) {
@@ -98,6 +124,9 @@ StateMachine.prototype.done = function(f, x) {
     }
 }
 
+/*
+ * Starts a stream on source. 
+ */
 StateMachine.prototype.stream = function(source) {
     if (source instanceof Array) {
 	return this._stream_arr(source);
@@ -108,6 +137,7 @@ StateMachine.prototype.stream = function(source) {
     }
 }
 
+// internal function that creates a stream over an array
 StateMachine.prototype._stream_arr = function(arr) {
     var i = 0;
 
@@ -127,9 +157,9 @@ StateMachine.prototype._stream_arr = function(arr) {
 
     var hasCalled = false;
 
-    // TODO: I don't think we need this? Isn't stream just going to swallow whatever value came before it?
     resultOfPrev = null;
     var success = function (x, k, ek, id, until) {
+        // we only want to call everything before the stream
 	if (!hasCalled) {
 	    f.successHandler(x,
 			     function (y) {
@@ -144,8 +174,9 @@ StateMachine.prototype._stream_arr = function(arr) {
 			     });
 	    hasCalled = true;
 	} else {
+            // Once we've proccessed the chain before us once, we are getting here through until's setInterval.
+            // If we either reach the end of the array or have met the until condition, we want to clear in the interval.
             var next = iter();
-            // we only want to keep going if there is an element in the array to process
             if (next != undefined && !until) {
 	        schedule(k, next);
             } else {
@@ -157,6 +188,7 @@ StateMachine.prototype._stream_arr = function(arr) {
     return new Stream(success, error);    
 }
 
+// an internal function that creates a stream from a server
 StateMachine.prototype._stream_req = function(req) {
     var f = this;
     var curPendingReq = 0;
@@ -240,7 +272,10 @@ StateMachine.prototype._stream_iter = function(iter) {
     return new Stream(success, error);
 }
 
+
 /**
+Makes a single request with req and passes the result down the chain.
+
 example request:
 
 {
