@@ -200,7 +200,7 @@ StateMachine.prototype._stream_req = function(req) {
     var error = function(err, ek) {
         ek(err)
     }
-
+    
     var hasCalled = false;
     var success = function (x, k, ek, id, until) {
 	if (until.stop) return;
@@ -237,10 +237,11 @@ StateMachine.prototype._stream_req = function(req) {
 			     });
 	    hasCalled = true;
 	} else if (!until.stop) {
-		var handleLoad = handleLoadFactory();
-		buildAndSendXhr(req, handleLoad);
+	    var handleLoad = handleLoadFactory();
+	    buildAndSendXhr(req, handleLoad);
         }
-    
+    }
+        
     return new Stream(success, error);
 }
 
@@ -292,7 +293,7 @@ example request:
 */
 StateMachine.prototype.request = function (req) {
     var f = this;
-
+        
     var error = function(e, ek) {
         ek(e)
     }
