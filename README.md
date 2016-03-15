@@ -35,6 +35,7 @@ Begin()
 function handleServerIsUp() {
     console.log("Server " + document.getElementById("server").value + " is up :)"); 
 }
+
 function handleServerIsDown() {
     console.log("Server " + document.getElementById("server").value + " is down :("); 
 }
