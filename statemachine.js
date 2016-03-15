@@ -103,7 +103,7 @@ StateMachine.prototype.stream = function(source) {
 	return this._stream_arr(source);
     } else if (source instanceof Function) {
         return this._stream_iter(source);
-    } else if (checkReq(source)) {
+    } else {
 	return this._stream_req(source);
     }
 }
@@ -157,29 +157,11 @@ StateMachine.prototype._stream_arr = function(arr) {
     return new Stream(success, error);    
 }
 
-StateMachine.prototype._stream_req = function(source) {
+StateMachine.prototype._stream_req = function(req) {
     var f = this;
     var curPendingReq = 0;
     var totalReqMade = 0;
     
-    var handleResponse = function(xhr) {
-	if (xhr.status == 200) {
-	    schedule(k, xhr.response);
-	} else {
-	    ek(xhr.status);
-	}
-    }
-
-    var handleLoadFactory = function() {
-	var curReq = totalReqMade++;
-	return function (xhr) {
-	    fireWhenTrue(function() { return curPendingReq == curReq; },
-			 function() {
-			     curPendingReq++;
-			     handleResponse(xhr);
-			 });
-	}
-    }
 
 
     var error = function(err, ek) {
@@ -188,6 +170,29 @@ StateMachine.prototype._stream_req = function(source) {
 
     var hasCalled = false;
     var success = function (x, k, ek, id, until) {
+	if (until.stop) return;
+	var handleResponse = function(xhr) {
+	    if (until.stop) return;
+	    if (xhr.status == 200) {
+                schedule(k, xhr.response, id, until);
+	    } else {
+		ek(xhr.status);
+	    }
+	}
+
+	var handleLoadFactory = function() {
+	    var curReq = totalReqMade;
+	    totalReqMade++;
+	    return function (xhr) {
+		fireWhenTrue(function() {
+		    return curPendingReq == curReq; },
+			     function() {
+				 curPendingReq++;
+				 handleResponse(xhr);
+			     });
+	    }
+	}
+	
 	if (!hasCalled) {
 	    f.successHandler(x,
 			     function (y) {
@@ -198,13 +203,11 @@ StateMachine.prototype._stream_req = function(source) {
 				 throw err;
 			     });
 	    hasCalled = true;
-	} else if (!until) {
-	    var curReq = totalReqMade++;
-	    var handleLoad = handleLoadFactory();
-	    buildAndSendXhr(req, handleLoad);
+	} else if (!until.stop) {
+		var handleLoad = handleLoadFactory();
+		buildAndSendXhr(req, handleLoad);
         }
-    }
-
+    
     return new Stream(success, error);
 }
 
@@ -228,8 +231,7 @@ StateMachine.prototype._stream_iter = function(iter) {
 				    throw err;
 				});
 	    hasCalled = true;
-	} else {
-            if (!until) {
+	} else if (!until.stop) {
 	        schedule(k, iter());
             }
         }

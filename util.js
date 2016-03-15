@@ -19,7 +19,7 @@ function fireWhenTrue(conditional, callback) {
     if (conditional()) {
 	callback();
     } else {
-	setTimeout(function() {fireWhenTrue(conditional, callback);}, 10);
+	setTimeout(function() {fireWhenTrue(conditional, callback);}, 3000);
     }
 }
 
@@ -38,6 +38,7 @@ function buildAndSendXhr(req, callback) {
     xhr.addEventListener("readystatechange",
 			 function() {
 			     // Not loaded, just return
+			     
 			     if (xhr.readyState != 4) return;
 			     callback(xhr);
 			 }, false);
@@ -46,7 +47,6 @@ function buildAndSendXhr(req, callback) {
     } else {
 	xhr.send();
     }
-
 }
 
 function checkReq(req) {
