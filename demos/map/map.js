@@ -19,4 +19,10 @@ function $() {
     return result;
 }
 
+function printTweets(data) {
+    var arr = JSON.parse(data)
+    arr.forEach(function(obj) {
+        console.log("User " + obj.username + " says " + obj.tweet);
+    });
+}
 

@@ -25,6 +25,11 @@ my_http.createServer(function(request,response){
     console.log("I got kicked");
     var me = requestNum++
     console.log("Got request:" + me)
+
+    // need to enable cross domain access
+    response.setHeader("Access-Control-Allow-Origin", "*");
+    response.setHeader("Access-Control-Allow-Headers", "X-Requested-With");
+    
     if (outOfOrder) {
         if (randomInt(0, 10) < odds) {
             console.log("Making request " + me + " wait")
