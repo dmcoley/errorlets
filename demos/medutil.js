@@ -5,6 +5,7 @@ function handleServerIsUp() {
         $("results").style.color = 'green';
     } else {
         $("results").innerHTML = "Server " + name + " is down :(";
+        times = 0;
     }
 }
 
