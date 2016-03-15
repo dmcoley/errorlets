@@ -12,6 +12,9 @@ function Event(eventname, target) {
     this.target = target
 }
 
+/*
+ * Creates a StateMachine that waits for an event before continuing the chain.
+ */
 Event.prototype = new StateMachine(function(val, k) {
     var f = this
     function handler(event) {

@@ -1,4 +1,8 @@
 /* Stream functions implementations */
+
+/*
+ * Creates a Stream object.
+ */
 function Stream(successHandler, errorHandler) {
     this.successHandler = successHandler;
     this.errorHandler = errorHandler;
@@ -8,6 +12,9 @@ Stream.prototype.Stream = function() {
     return this
 }
 
+/*
+ * Creates a Stream object from a function.
+ */
 Function.prototype.Stream = function() {
     var f = this; // the function
 
@@ -32,6 +39,9 @@ Function.prototype.Stream = function() {
     return new Stream(success, error);
 }
 
+/*
+ * Creates a Stream object that is setup to handle errors. This is an interal function and should not be used by the user.
+ */
 Function.prototype.ErrorStream = function() {
     var h = this
 
@@ -55,6 +65,9 @@ Function.prototype.ErrorStream = function() {
     return new Stream(success, error)
 }
 
+/*
+ * Chains a call to g to the end of the chain. 
+ */
 Stream.prototype.next = function (g) {
     var f = this;
     g = g.Stream();
@@ -75,10 +88,13 @@ Stream.prototype.next = function (g) {
 			    );
         }
     };
+    
     return new Stream(success, error);
 }
 
-
+/*
+ * Creates a Stream object that will handle an error by calling h. This has no effect if there isn't an error.
+ */
 Stream.prototype.error = function(h) {
     var f = this
     h = h.ErrorStream()
@@ -96,6 +112,12 @@ Stream.prototype.error = function(h) {
     return new Stream(success, error);
 }
 
+/*
+ * This designates the end of a stream. A stream will continue to stream data until stop evaluates to true if it's a function
+ * or stop happens if it's an event. Interval can be used to explicitly state the amount of time between each piece of data.
+ *
+ * Returns a StateMachine object.
+ */
 Stream.prototype.until = function(stop, interval) {
     interval = interval !== undefined ? interval : 0
     if (typeof(stop) === "function") {
@@ -107,17 +129,20 @@ Stream.prototype.until = function(stop, interval) {
     }
 }
 
+// an internal function for events
 Stream.prototype._until_event = function(event, interval) {
     var self = this
 
     var success = function(x, k, ek) {
+        // Event is a StateMachine so we want to call it's success handler. Once the event happens our success function will be called which clears
+        // the interval and calls the continuation.
         event.successHandler(x, function(y) { clearInterval(self.intervalId); k(y)})
         self.successHandler(x,
                             function(y) {
                                 self.intervalId = setInterval(function() {
                                     self.successHandler(x,
-                                                        function(y) {
-                                                            
+                                                        function() {
+                                                            // we don't want to do anything here since we're waiting on the event to fire
                                                         },
                                                         function(err) {
                                                             clearInterval(self.intervalId)
@@ -131,6 +156,7 @@ Stream.prototype._until_event = function(event, interval) {
     return new StateMachine(success, function(err, ek) { ek(err) })
 }
 
+// an interval function for functions with until.
 Stream.prototype._until_function = function (f, interval) {
     var self = this;
     var success = function(x, k, ek) {
@@ -180,14 +206,23 @@ Stream.prototype._until_function = function (f, interval) {
                             });
 }
 
+/*
+ * Runs the stream indefinitely with x as the argument.
+ */
 Stream.prototype.run  = function (x) {
     this.until(function() {return false}).run(x)
 }
 
+/*
+ * Runs the stream indefinitely with f as a cleanup function to be called at the end of each firing.
+ */
 Stream.prototype.done = function(f, x) {
     this.next(f).run(x);
 }
 
+/*
+ * A stream is not supported on a Stream object.
+ */
 Stream.prototype.stream = function () {
-    throw new Error("Cannot call .stream on a stream object");
+    throw new Error("Cannot call .stream on a Stream object");
 }
