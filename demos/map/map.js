@@ -9,20 +9,24 @@ function handleServerIsDown() {
 }
 
 function $() {
-    if (arguments.length==1) {
+    if (arguments.length == 1) {
         return document.getElementById(arguments[0]);
     }
-    var result=[], i=0, el;
-    while(el=document.getElementById(arguments[i++])) {
+    var result = [],
+        i = 0,
+        el;
+    while (el = document.getElementById(arguments[i++])) {
         result.push(el);
     }
     return result;
 }
 
 function printTweets(data) {
+    $("feed").innerHTML = "<h1>TWEETS</h1><ul>";
     var arr = JSON.parse(data)
     arr.forEach(function(obj) {
-        console.log("User " + obj.username + " says " + obj.tweet);
+        $("feed").innerHTML += "<li><span style='color:blue'>@"
+          + obj.username + "</span>: " + obj.tweet + "</li>";
     });
+    $("feed").innerHTML += "</ul>";
 }
-

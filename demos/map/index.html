@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html style="background-color:azure">
   <head>
     <title>Mouse Position</title>
     <link rel="stylesheet" href="http://openlayers.org/en/v3.14.2/css/ol.css" type="text/css">
@@ -13,8 +13,13 @@
     <script src="map.js"></script>
   </head>
   <body>
-    <div id="map" class="map"></div>
+    <div id="map" class="map" style="
+    border: 2px solid lightgrey;"></div>
     <div id="mouse-position"></div>
+    <div id="feed" style="height:200px,
+        border-radius: 25px;
+        border: 2px solid lightgrey;
+        padding: 20px; "></div>
     <script>
     
     /* Okay this is hacky but the OL API is pretty restrictive.
@@ -34,7 +39,7 @@
     }
 
     var mousePositionControl = new ol.control.MousePosition({
-        coordinateFormat: log(20),  // <-- pass in number of digits
+        coordinateFormat: log(2),  // <-- pass in number of digits
         projection: 'EPSG:4326',
         className: 'custom-mouse-position',
         target: document.getElementById('mouse-position'),
@@ -67,7 +72,11 @@
     }
     
     var f = function () {
-        Event("click", document.getElementById("map")).request(req).next(printTweets).next(f).run()
+        Event("click", $("map"))
+            .request(req)
+            .next(printTweets)
+            .next(f)
+            .done()
     }
     f()
     </script>
