@@ -40,3 +40,25 @@ function handleServerIsDown() {
     console.log("Server " + document.getElementById("server").value + " is down :("); 
 }
 ```
+To get a little more complicated, suppose we wanted to repeatedly request the server until we get a successful response back. ErrorLets provides an until construct that stops a stream when a function f evaluates to true, or a passed in event happens on a target.
+
+```javascript
+function report() {
+	var request = {
+        	type: 'GET',
+                url: $("server").value,
+                headers: []
+        }
+
+Begin()
+  .stream(request)
+  .next(function() { return "up!"; })
+  .error(function () { return "down!"; })
+  .until(function(res) { return res === "up!" })
+  .done(handleServerIsUp)
+}
+```
+Note that in this example, the function passed into done is invoked after the StateMachine has finished execution.
+
+## Thanks
+Arrowlets for inspiration and UW CSE401
