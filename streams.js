@@ -12,7 +12,8 @@ Function.prototype.Stream = function() {
     var f = this; // the function
 
     var error = function(e, ek, until) {
-        if (!until.stop) {
+        /* TODO: why check for undefined here?? */
+        if (until == undefined || !until.stop) {
             ek(e)
         }
     }
