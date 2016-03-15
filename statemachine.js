@@ -4,6 +4,9 @@
  * Creates a new state machine. f is the success function and e is the error function.  
  */
 function StateMachine(f, e) {
+    if (!(f instanceof Function) || !(e instanceof Function)) {
+        throw new Error("f and e both need to be functions.");
+    }
     this.errorHandler = e;
     this.successHandler = f;
 }
@@ -159,7 +162,7 @@ StateMachine.prototype._stream_arr = function(arr) {
 
     resultOfPrev = null;
     var success = function (x, k, ek, id, until) {
-        // we only want to call everything before the stream
+        // we only want to call everything before the stream once
 	if (!hasCalled) {
 	    f.successHandler(x,
 			     function (y) {
@@ -194,8 +197,6 @@ StateMachine.prototype._stream_req = function(req) {
     var curPendingReq = 0;
     var totalReqMade = 0;
     
-
-
     var error = function(err, ek) {
         ek(err)
     }
@@ -245,30 +246,30 @@ StateMachine.prototype._stream_req = function(req) {
 
 StateMachine.prototype._stream_iter = function(iter) {
     var f = this;
-   
+    
     var error = function(err, ek) {
         ek(err)
     }
-
+    
     var hasCalled = false;
     var resultOfPrev = null;
     var success = function (x, k, ek, id, until) {
+        // we only want to call everything before the stream once
 	if (!hasCalled) {
 	    f.successHandler(x,
-				function (y) {
-				    resultOfPrev = y;
-                                    schedule(k, iter())
-				},
-				function (err) {
-				    throw err;
-				});
+			     function (y) {
+				 resultOfPrev = y;
+                                 schedule(k, iter())
+			     },
+			     function (err) {
+				 throw err;
+			     });
 	    hasCalled = true;
 	} else if (!until.stop) {
-	        schedule(k, iter());
-            }
+	    schedule(k, iter());
         }
     }
-
+    
     return new Stream(success, error);
 }
 
