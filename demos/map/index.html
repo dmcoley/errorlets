@@ -72,14 +72,13 @@
         data: ''
     }
     
-    var f = function () {
-        Event("click", $("map"))
+        function f() {
+            Event("click", $("map"))
             .request(req)
             .next(printTweets)
-            .next(f)
-            .done()
-    }
-    f()
+            .done(f)
+        }
+        f()
     </script>
   </body>
 </html>

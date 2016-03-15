@@ -134,12 +134,13 @@ Stream.prototype._until_event = function(event, interval) {
     var self = this
 
     var success = function(x, k, ek) {
-        // Event is a StateMachine so we want to call it's success handler. Once the event happens our success function will be called which clears
         // the interval and calls the continuation.
-        event.successHandler(x, function(y) { clearInterval(self.intervalId); k(y)})
         self.successHandler(x,
                             function(y) {
+                                self.stop = false
                                 self.intervalId = setInterval(function() {
+                                    // Event is a StateMachine so we want to call it's success handler. Once the event happens our success function will be called which clears
+                                    event.successHandler(x, function(y) {self.stop = true; clearInterval(self.intervalId); k(y)})
                                     self.successHandler(x,
                                                         function() {
                                                             // we don't want to do anything here since we're waiting on the event to fire
@@ -147,10 +148,11 @@ Stream.prototype._until_event = function(event, interval) {
                                                         function(err) {
                                                             clearInterval(self.intervalId)
                                                             ek(err)
-                                                        }, self.intervalId)
+                                                        }, self.intervalId, self)
                                 }, interval);
                             },
-                            function(err) { ek(err) }, self.intervalId);
+                            function(err) { ek(err) }, self.intervalId, self);
+
     }
 
     return new StateMachine(success, function(err, ek) { ek(err) })
