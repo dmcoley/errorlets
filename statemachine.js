@@ -103,7 +103,7 @@ StateMachine.prototype.stream = function(source) {
 	return this._stream_arr(source);
     } else if (source instanceof Function) {
         return this._stream_iter(source);
-    } else {
+    } else if (checkReq(source)) {
 	return this._stream_req(source);
     }
 }
@@ -132,16 +132,16 @@ StateMachine.prototype._stream_arr = function(arr) {
     var success = function (x, k, ek, id, until) {
 	if (!hasCalled) {
 	    f.successHandler(x,
-				function (y) {
-				    resultOfPrev = y;
-                                    var next = iter();
-                                    if (next != undefined && !until) {
-                                        schedule(k, next);
-                                    }
-				},
-				function (err) {
-				    throw err;
-				});
+			     function (y) {
+				 resultOfPrev = y;
+                                 var next = iter();
+                                 if (next != undefined && !until) {
+                                     schedule(k, next);
+                                 }
+			     },
+			     function (err) {
+				 throw err;
+			     });
 	    hasCalled = true;
 	} else {
             var next = iter();
@@ -158,12 +158,59 @@ StateMachine.prototype._stream_arr = function(arr) {
 }
 
 StateMachine.prototype._stream_req = function(source) {
+    var f = this;
+    var curPendingReq = 0;
+    var totalReqMade = 0;
+    
+    var handleResponse = function(xhr) {
+	if (xhr.status == 200) {
+	    schedule(k, xhr.response);
+	} else {
+	    ek(xhr.status);
+	}
+    }
 
+    var handleLoadFactory = function() {
+	var curReq = totalReqMade++;
+	return function (xhr) {
+	    fireWhenTrue(function() { return curPendingReq == curReq; },
+			 function() {
+			     curPendingReq++;
+			     handleResponse(xhr);
+			 });
+	}
+    }
+
+
+    var error = function(err, ek) {
+        ek(err)
+    }
+
+    var hasCalled = false;
+    var success = function (x, k, ek, id, until) {
+	if (!hasCalled) {
+	    f.successHandler(x,
+			     function (y) {
+				 var handleLoad = handleLoadFactory();
+				 buildAndSendXhr(req, handleLoad);
+			     },
+			     function (err) {
+				 throw err;
+			     });
+	    hasCalled = true;
+	} else if (!until) {
+	    var curReq = totalReqMade++;
+	    var handleLoad = handleLoadFactory();
+	    buildAndSendXhr(req, handleLoad);
+        }
+    }
+
+    return new Stream(success, error);
 }
 
 StateMachine.prototype._stream_iter = function(iter) {
     var f = this;
-    
+   
     var error = function(err, ek) {
         ek(err)
     }
@@ -180,40 +227,6 @@ StateMachine.prototype._stream_iter = function(iter) {
 				function (err) {
 				    throw err;
 				});
-	    hasCalled = true;
-	} else {
-            if (!until) {
-	        schedule(k, iter());
-            }
-        }
-    }
-
-    return new Stream(success, error);
-}
-
-StateMachine.prototype._stream_iter = function(iter) {
-    var f = this;
-    
-    var error = function(err, ek) {
-        ek(err)
-    }
-
-    var hasCalled = false;
-    var resultOfPrev = null;
-    var success = function (x, k, ek, id, until) {
-	if (!hasCalled) {
-	    f.successHandler(x,
-			     function (y) {
-				 // Build up the request
-				 if (req.data) {
-				     xhr.send(req.data);
-				 } else {
-				     xhr.send();
-				 }
-			     },
-			     function (err) {
-				 throw err;
-			     });
 	    hasCalled = true;
 	} else {
             if (!until) {
@@ -249,30 +262,14 @@ StateMachine.prototype.request = function (req) {
     var success = function (x, k, ek) {
 	f.successHandler(x,
 			 function (y) {
-			     // Build up the reques
-			     var xhr = new XMLHttpRequest();
-			     xhr.open(req.type, req.url, true);
-			     if (req.headers) {
-				 req.headers.forEach(function (header) {
-				     xhr.setRequestHeader(header[0], header[1]);
-				 });
-			     }
-
-			     xhr.addEventListener("readystatechange",
-						  function(e) {
-						      // Not loaded, just return
-						      if (xhr.readyState != 4) return;
-						      if (xhr.status == 200) {
-							  schedule(k, xhr.response);
-						      } else {
-							  ek(xhr.status);
-						      }
-						  }, false);
-			     if (req.data) {
-				 xhr.send(req.data);
-			     } else {
-				 xhr.send();
-			     }
+				 var handleLoad = function (xhr) {
+				     if (xhr.status == 200) {
+					 schedule(k, xhr.response);
+				     } else {
+					 ek(xhr.status);
+				     }
+				 }
+			     buildAndSendXhr(req, handleLoad);
 			 },
 			 function(err) { ek(err) }
 			)

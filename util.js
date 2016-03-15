@@ -48,3 +48,9 @@ function buildAndSendXhr(req, callback) {
     }
 
 }
+
+function checkReq(req) {
+    return (typeof(req) === 'object') &&
+	typeof(req.data) === 'string' &&
+	typeof(req.url) === 'string';
+}
