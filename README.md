@@ -7,5 +7,5 @@ The library supports sequential, event-based operations that may commonly produc
 - Proposal: https://docs.google.com/document/d/1f9NyP0QyaPp0DWdDv_708tJy-we8FWIsw9b1YF42riI/
 - Tutorial: https://docs.google.com/document/d/1RG-mfuAG0UG-DF4MtX1yPyotlD9Dy2Vqh-zomR6r9RY/
 - Design Doc: https://docs.google.com/document/d/1mVWaFXrAYqPPvODa06BykwZuDAMMqoszpCqiDo3kOzw/
-- Poster:
+- Poster: https://docs.google.com/presentation/d/1pfmNLMkmqx7cYZAaKnc9kAkINxQKvLbkpNHD3mIwrW0/
 - Screencast:
