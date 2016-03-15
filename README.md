@@ -14,8 +14,8 @@ The library supports sequential, event-based operations that may commonly produc
 Lets set up an event handler on a button in the DOM with the id "target", and log Hello World! to the console.
 We build a simple StateMachine and immediately call run() on it to invoke it.
 ```javascript
-Event(“click”, document.getElementById(“target”))
-	.next(function() { console.log(“Hello world!”))
+Event("click", document.getElementById("target"))
+	.next(function() { console.log("Hello world!"))
 	.run()
 ```
 Now, lets demonstrate the simplicity of using a Stream object to deal with GET requests to a web server. This specific scenario gets a server name from a text-area with the id "server".
@@ -43,12 +43,11 @@ function handleServerIsDown() {
 To get a little more complicated, suppose we wanted to repeatedly request the server until we get a successful response back. ErrorLets provides an until construct that stops a stream when a function f evaluates to true, or a passed in event happens on a target.
 
 ```javascript
-function report() {
-	var request = {
-        	type: 'GET',
-                url: $("server").value,
-                headers: []
-        }
+var request = {
+  type: 'GET',
+  url: document.getElementById("server").value,
+  headers: []
+}
 
 Begin()
   .stream(request)
@@ -56,9 +55,8 @@ Begin()
   .error(function () { return "down!"; })
   .until(function(res) { return res === "up!" })
   .done(handleServerIsUp)
-}
 ```
 Note that in this example, the function passed into done is invoked after the StateMachine has finished execution.
 
 ## Thanks
-Arrowlets for inspiration and UW CSE401
+UW CSE401 and Arrowlets for inspiration
