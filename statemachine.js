@@ -103,6 +103,8 @@ StateMachine.prototype.stream = function(source) {
 	return this._stream_arr(source);
     } else if (source instanceof Function) {
         return this._stream_iter(source);
+    } else {
+	return this._stream_req(source);
     }
 }
 
@@ -178,6 +180,40 @@ StateMachine.prototype._stream_iter = function(iter) {
 				function (err) {
 				    throw err;
 				});
+	    hasCalled = true;
+	} else {
+            if (!until) {
+	        schedule(k, iter());
+            }
+        }
+    }
+
+    return new Stream(success, error);
+}
+
+StateMachine.prototype._stream_iter = function(iter) {
+    var f = this;
+    
+    var error = function(err, ek) {
+        ek(err)
+    }
+
+    var hasCalled = false;
+    var resultOfPrev = null;
+    var success = function (x, k, ek, id, until) {
+	if (!hasCalled) {
+	    f.successHandler(x,
+			     function (y) {
+				 // Build up the request
+				 if (req.data) {
+				     xhr.send(req.data);
+				 } else {
+				     xhr.send();
+				 }
+			     },
+			     function (err) {
+				 throw err;
+			     });
 	    hasCalled = true;
 	} else {
             if (!until) {
