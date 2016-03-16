@@ -42,12 +42,10 @@
                     if (res !== "up!") {
                         $("results").innerHTML = 
                             "Trying again " + ++times + " time(s)... :/";
-                            /* Because JS has no sleep function */
-                            var date = new Date();
                         $("results").style.color = 'red';
                     }
                     return res === "up!" || times > 100; 
-                }, 100)
+                }, 500)
               .done(handleServerIsUp)
         }
     </script>
