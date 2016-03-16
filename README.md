@@ -8,7 +8,7 @@ The library supports sequential, event-based operations that may commonly produc
 - Tutorial: https://docs.google.com/document/d/1RG-mfuAG0UG-DF4MtX1yPyotlD9Dy2Vqh-zomR6r9RY/
 - Design Doc: https://docs.google.com/document/d/1mVWaFXrAYqPPvODa06BykwZuDAMMqoszpCqiDo3kOzw/
 - Poster: https://docs.google.com/presentation/d/1pfmNLMkmqx7cYZAaKnc9kAkINxQKvLbkpNHD3mIwrW0/
-- Screencast:
+- Screencast: https://www.dropbox.com/s/myx6oqkhkl3gfll/errorlets-screencast.mov?dl=0
 
 ## Usage
 Lets set up an event handler on a button in the DOM with the id "target", and log Hello World! to the console.
